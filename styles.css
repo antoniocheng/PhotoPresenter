@@ -1,0 +1,1282 @@
+/* ==========================================================================
+   PhotoPresenter - 劇院級深色 UI & 12 種動態進場動畫樣式表
+   ========================================================================== */
+
+:root {
+  --bg-dark: #0b0e17;
+  --bg-card: #151a28;
+  --bg-card-hover: #1b2234;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --text-main: #f3f6fc;
+  --text-muted: #94a3b8;
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  --success: #10b981;
+  --danger: #ef4444;
+  --cast-orange: #f59e0b;
+  --slide-duration: 5s;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ================= 1. 設定主面板 (Setup View) ================= */
+.setup-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 22px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-icon {
+  font-size: 2.6rem;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+}
+
+.brand h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.badge-cast {
+  font-size: 0.78rem;
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .setup-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  padding: 22px 24px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.card-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.help-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.pill-badge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill-badge.badge-muted {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--text-muted);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
+.pill-badge.badge-success {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+/* 按鈕樣式 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+}
+
+.btn-primary:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), #3b82f6);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
+}
+
+.btn-accent:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+.btn-secondary {
+  background: #262f45;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.btn-secondary:hover {
+  background: #313d5a;
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--text-main);
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-lg {
+  padding: 12px 24px;
+  font-size: 1.02rem;
+}
+
+.btn-xl {
+  width: 100%;
+  padding: 16px 28px;
+  font-size: 1.18rem;
+  border-radius: 14px;
+}
+
+/* 目錄選擇器與本機路徑直輸區 */
+.folder-picker-box {
+  background: rgba(14, 165, 233, 0.06);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manual-path-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.path-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.path-input:focus {
+  border-color: var(--accent);
+}
+
+.folder-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(14, 165, 233, 0.16);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.folder-options-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0;
+  font-size: 0.9rem;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-main);
+  font-size: 0.92rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.btn-text-danger {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.btn-text-danger:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-text-danger:not(:disabled):hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* 已選目錄清單 */
+.folder-list-container {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.folder-list-header {
+  padding: 10px 14px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.folder-list {
+  list-style: none;
+  max-height: 310px;
+  overflow-y: auto;
+}
+
+.folder-list .empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s;
+}
+
+.folder-item:last-child {
+  border-bottom: none;
+}
+
+.folder-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.folder-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.folder-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #222;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+.folder-meta {
+  min-width: 0;
+}
+
+.folder-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-path-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.folder-item-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.folder-count-badge {
+  background: rgba(14, 165, 233, 0.18);
+  color: #38bdf8;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-icon-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.btn-icon-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* 音樂設定區塊 */
+.music-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: all 0.2s;
+}
+
+.music-box.has-music {
+  border-style: solid;
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.music-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.music-icon {
+  font-size: 1.8rem;
+}
+
+.music-details {
+  min-width: 0;
+}
+
+.music-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.music-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.audio-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.audio-controls-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* 播放參數設定 */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.setting-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setting-label strong {
+  font-size: 0.95rem;
+}
+
+.setting-label span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.duration-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.duration-control input[type="range"] {
+  width: 130px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.duration-input-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+
+.duration-input-group input[type="number"] {
+  width: 48px;
+  background: transparent;
+  border: none;
+  color: #38bdf8;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.segmented-control {
+  display: inline-flex;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.segment {
+  position: relative;
+  cursor: pointer;
+}
+
+.segment input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segment span {
+  display: block;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.segment input:checked + span {
+  background: var(--primary);
+  color: #fff;
+}
+
+.checkboxes-row {
+  justify-content: flex-start;
+  gap: 24px;
+}
+
+/* 12 種進場動畫標籤展示 */
+.animation-pool-box {
+  margin-top: 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.pool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.pool-hint {
+  color: #34d399;
+  font-size: 0.78rem;
+}
+
+.animation-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.anim-tag {
+  font-size: 0.76rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 4px 9px;
+  border-radius: 6px;
+}
+
+/* ================= 2. 全螢幕動態劇院播放器 (Player View) ================= */
+.player-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.player-container.cursor-hidden {
+  cursor: none;
+}
+
+/* 高斯模糊動態背景層 (讓 16:9 電視在播直立照片時兩側有柔光氛圍) */
+.bg-blur-layer {
+  position: absolute;
+  inset: -40px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(38px) brightness(0.42) saturate(1.35);
+  transform: scale(1.12);
+  transition: opacity 2.6s ease-in-out;
+  opacity: 0;
+  z-index: 1;
+}
+
+.bg-blur-layer.active {
+  opacity: 1;
+}
+
+.bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.65) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* 3D 劇院主舞台 */
+.stage-3d {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  perspective: 1400px;
+  overflow: hidden;
+}
+
+.slide-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.2vh 2.5vw;
+  opacity: 0;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter, clip-path;
+}
+
+.slide-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+}
+
+/* 當使用者選擇滿版 Cover 模式 */
+.player-container.fit-cover .slide-wrapper {
+  padding: 0;
+}
+
+.player-container.fit-cover .slide-wrapper img {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+/* 舊照片平滑退場動畫 (放慢至 2.4 秒優雅柔化淡出) */
+.slide-wrapper.slide-exit {
+  z-index: 4;
+  animation: animExitFade 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes animExitFade {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(8px);
+  }
+}
+
+/* ==========================================================================
+   12 種各具特色的動態進場與展示動畫 (放慢轉場節奏，優雅舒緩不急促)
+   ========================================================================== */
+
+/* 1. 電影慢速推進 (Ken Burns Zoom In & Pan) */
+.anim-kenburns-in {
+  z-index: 5;
+  animation:
+    fadeEnter 2.4s ease-in-out forwards,
+    kenBurnsIn var(--slide-duration, 5s) ease-out forwards;
+}
+@keyframes kenBurnsIn {
+  0%   { transform: scale(0.93) translate3d(0, 0, 0); }
+  100% { transform: scale(1.07) translate3d(-1%, -0.8%, 0); }
+}
+
+/* 2. 電影慢速拉遠 (Ken Burns Zoom Out) */
+.anim-kenburns-out {
+  z-index: 5;
+  animation:
+    fadeEnter 2.4s ease-in-out forwards,
+    kenBurnsOut var(--slide-duration, 5s) ease-out forwards;
+}
+@keyframes kenBurnsOut {
+  0%   { transform: scale(1.13) translate3d(1.2%, 0.8%, 0); }
+  100% { transform: scale(1.0) translate3d(0, 0, 0); }
+}
+
+/* 3. 左側舒緩滑入 (Slide In Left Gentle) */
+.anim-slide-left {
+  z-index: 5;
+  animation: slideFromLeft 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideFromLeft {
+  0%   { opacity: 0; transform: translate3d(-45vw, 0, 0) scale(0.94); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* 4. 右側舒緩滑入 (Slide In Right Gentle) */
+.anim-slide-right {
+  z-index: 5;
+  animation: slideFromRight 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideFromRight {
+  0%   { opacity: 0; transform: translate3d(45vw, 0, 0) scale(0.94); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* 5. 3D 卡片水平優雅翻轉進場 (3D Flip Horizontal) */
+.anim-3d-flip-x {
+  z-index: 5;
+  animation: flip3DHorizontal 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes flip3DHorizontal {
+  0%   { opacity: 0; transform: rotateY(-65deg) scale(0.86) translateZ(-90px); }
+  100% { opacity: 1; transform: rotateY(0deg) scale(1) translateZ(0); }
+}
+
+/* 6. 3D 卡片垂直立體優雅翻轉 (3D Flip Vertical) */
+.anim-3d-flip-y {
+  z-index: 5;
+  animation: flip3DVertical 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes flip3DVertical {
+  0%   { opacity: 0; transform: rotateX(60deg) scale(0.86) translateZ(-90px); }
+  100% { opacity: 1; transform: rotateX(0deg) scale(1) translateZ(0); }
+}
+
+/* 7. 拍立得微旋輕柔落下 (Polaroid Gentle Drop & Settle) */
+.anim-polaroid-drop {
+  z-index: 5;
+  animation: polaroidDrop 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes polaroidDrop {
+  0%   { opacity: 0; transform: translate3d(0, -38vh, 140px) rotateZ(-9deg) scale(1.14); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1); }
+}
+
+/* 8. 底部緩慢浮現放大 (Float Up & Scale) */
+.anim-float-up {
+  z-index: 5;
+  animation: floatUpReveal 2.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes floatUpReveal {
+  0%   { opacity: 0; transform: translate3d(0, 35vh, 0) scale(0.85); filter: blur(8px); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0px); }
+}
+
+/* 9. 漩渦柔和旋轉聚焦進場 (Swirl & Zoom Focus) */
+.anim-swirl-zoom {
+  z-index: 5;
+  animation: swirlZoomIn 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes swirlZoomIn {
+  0%   { opacity: 0; transform: scale(0.65) rotateZ(11deg); filter: blur(8px); }
+  100% { opacity: 1; transform: scale(1) rotateZ(0deg); filter: blur(0px); }
+}
+
+/* 10. 柔焦光圈圓形緩慢展開 (Iris Circle Reveal) */
+.anim-iris-reveal {
+  z-index: 5;
+  animation: irisCircleReveal 3.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes irisCircleReveal {
+  0% {
+    opacity: 0;
+    clip-path: circle(8% at 50% 50%);
+    transform: scale(1.08);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    clip-path: circle(85% at 50% 50%);
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* 11. 菱形百葉緩慢展開 (Diamond Wipe Reveal) */
+.anim-diamond-wipe {
+  z-index: 5;
+  animation: diamondReveal 3.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes diamondReveal {
+  0% {
+    opacity: 0;
+    clip-path: polygon(50% 35%, 65% 50%, 50% 65%, 35% 50%);
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    clip-path: polygon(50% -60%, 160% 50%, 50% 160%, -60% 50%);
+    transform: scale(1);
+  }
+}
+
+/* 12. 3D 畫框推門舒緩進場 (3D Swing Door) */
+.anim-3d-swing {
+  z-index: 5;
+  transform-origin: left center;
+  animation: swing3DDoor 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes swing3DDoor {
+  0%   { opacity: 0; transform: perspective(1400px) rotateY(45deg) translateX(-10vw) scale(0.92); }
+  100% { opacity: 1; transform: perspective(1400px) rotateY(0deg) translateX(0) scale(1); }
+}
+
+@keyframes fadeEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 暫停時凍結 CSS 動畫 */
+.player-container.is-paused .slide-wrapper {
+  animation-play-state: paused !important;
+}
+
+/* ================= 播放器 HUD 與資訊卡 ================= */
+
+/* 左下角照片與動畫名稱資訊卡 */
+.photo-caption {
+  position: absolute;
+  left: 28px;
+  bottom: 92px;
+  z-index: 12;
+  background: rgba(11, 14, 23, 0.58);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 12px 18px;
+  border-radius: 14px;
+  max-width: 440px;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+
+.player-container.cursor-hidden .photo-caption {
+  bottom: 28px;
+}
+
+.caption-folder {
+  font-size: 0.78rem;
+  color: #38bdf8;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.caption-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caption-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  margin-top: 6px;
+}
+
+.caption-anim-badge {
+  background: rgba(99, 102, 241, 0.3);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: #e0e7ff;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+}
+
+/* 右上角 Chromecast 串流指示器 */
+.cast-active-pill {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 15;
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  color: #fde68a;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(8px);
+}
+
+.pulse-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b;
+  animation: pulseAnim 1.4s infinite;
+}
+
+@keyframes pulseAnim {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.55; }
+}
+
+/* 底部浮動控制列 (HUD) */
+.player-hud {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 20px;
+  z-index: 20;
+  background: rgba(15, 20, 32, 0.78);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+}
+
+.player-container.cursor-hidden .player-hud {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+}
+
+.hud-left,
+.hud-center,
+.hud-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.hud-btn-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+  justify-content: center;
+  font-size: 1.05rem;
+}
+
+.hud-btn-play {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  padding: 0;
+  justify-content: center;
+  font-size: 1.25rem;
+  background: var(--primary);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.hud-btn-play:hover {
+  background: var(--primary-hover);
+  transform: scale(1.06);
+}
+
+.hud-btn-cast {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.hud-btn-cast:hover {
+  filter: brightness(1.1);
+}
+
+.hud-music-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  color: #a5b4fc;
+  max-width: 200px;
+}
+
+.hud-music-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.hud-mini-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.hud-mini-btn:hover {
+  background: var(--accent);
+}
+
+.hud-volume-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-btn-icon {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.hud-volume-control input[type="range"] {
+  width: 75px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* ================= 3. Chromecast 電視投放中心 Modal ================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.76);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-dialog {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  max-width: 680px;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  font-size: 1.2rem;
+}
+
+.btn-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-close:hover {
+  background: var(--danger);
+}
+
+.modal-body {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cast-option-card {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+
+.cast-option-card.recommended {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.cast-option-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  padding: 3px 10px;
+  border-radius: 99px;
+  margin-bottom: 8px;
+}
+
+.cast-option-badge.badge-alt {
+  background: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+}
+
+.cast-option-card h4 {
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+
+.cast-option-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.cast-steps {
+  margin-left: 20px;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+  margin-bottom: 14px;
+}
+
+.cast-steps code {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.cast-card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cast-status-msg {
+  margin-top: 8px;
+  font-size: 0.83rem;
+  color: #38bdf8 !important;
+}

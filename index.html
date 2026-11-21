@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhotoPresenter - 本機目錄直讀動態相簿 (Chromecast 電視投放版)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ================= 1. 設定與目錄管理主面板 ================= -->
+  <div id="setup-view" class="setup-container">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">🎬</div>
+        <div>
+          <h1>PhotoPresenter <span class="badge-cast">本機直讀 ‧ 免上傳</span> <span class="badge-cast">Chromecast Ready</span></h1>
+          <p class="subtitle">只記目錄清單、播放時才直接從硬碟讀照片出來 Show ‧ 12種不重複進場動畫 ‧ 音樂無限循環</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-top-cast-guide" class="btn btn-secondary" title="如何投放至電視">
+          📺 電視投放說明
+        </button>
+        <button id="btn-start-top" class="btn btn-primary btn-lg" disabled>
+          ▶ 開始動態播放
+        </button>
+      </div>
+    </header>
+
+    <main class="setup-grid">
+      <!-- 左欄：照片目錄多選管理 (只記目錄，不上傳檔案) -->
+      <section class="card folder-section">
+        <div class="card-header">
+          <h2>📁 1. 設定本機照片目錄列表（可多選）</h2>
+          <span id="folder-summary-badge" class="pill-badge">已選 0 個目錄</span>
+        </div>
+
+        <p class="help-text">
+          <strong>零上傳設計：</strong>選定目錄後只會把「目錄清單」記下來，<strong>完全不會把照片上傳到瀏覽器</strong>！當按下開始播放時，才會直接進目錄讀取當下要播的那張照片出來呈現。
+        </p>
+
+        <!-- 方式 A：直接按鈕選擇目錄 或 直接輸入/貼上本機目錄路徑 -->
+        <div class="folder-picker-box">
+          <div class="picker-main-actions">
+            <button id="btn-add-folder" class="btn btn-accent btn-lg" style="width: 100%;">
+              📂 瀏覽並加入本機照片目錄（可重複點選加入多個）
+            </button>
+          </div>
+
+          <div id="manual-path-row" class="manual-path-row">
+            <input
+              type="text"
+              id="input-folder-path"
+              class="path-input"
+              placeholder="或直接貼上本機目錄路徑，例如：D:\Photos\日本旅遊"
+            />
+            <button id="btn-add-path" class="btn btn-secondary">
+              ➕ 加入路徑
+            </button>
+          </div>
+        </div>
+
+        <div class="folder-options-bar">
+          <label class="checkbox-label">
+            <input type="checkbox" id="chk-subfolders" checked />
+            <span>自動讀取子資料夾內的照片</span>
+          </label>
+          <button id="btn-clear-folders" class="btn-text-danger" disabled>
+            🗑️ 清空目錄列表
+          </button>
+        </div>
+
+        <!-- 已選目錄清單 -->
+        <div class="folder-list-container">
+          <div class="folder-list-header">已選定的照片目錄列表（播放時直接從此列表讀取照片）</div>
+          <ul id="folder-list" class="folder-list">
+            <li class="empty-state">尚未加入任何照片目錄，請點擊上方「📂 瀏覽並加入本機照片目錄」或貼上資料夾路徑</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 右欄：背景音樂與播放動畫設定 -->
+      <div class="right-column">
+        <!-- 音樂設定卡片 -->
+        <section class="card music-section">
+          <div class="card-header">
+            <h2>🎵 2. 選擇背景音樂（自動重覆播放）</h2>
+            <span id="music-status-badge" class="pill-badge badge-muted">未選擇音樂</span>
+          </div>
+
+          <p class="help-text">
+            直接讀取本機音樂檔，照片在播放時音樂會<strong>無限重覆播放 (Loop)</strong>。
+          </p>
+
+          <input type="file" id="music-input" accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac" multiple hidden />
+
+          <div id="music-drop-zone" class="music-box">
+            <div class="music-info">
+              <div class="music-icon">🎧</div>
+              <div class="music-details">
+                <div id="music-filename" class="music-title">尚未選擇音樂檔案（可選填）</div>
+                <div id="music-meta" class="music-sub">支援 MP3, WAV, M4A, OGG, FLAC</div>
+              </div>
+            </div>
+            <div class="music-actions">
+              <button id="btn-select-music" class="btn btn-secondary">
+                🎵 選擇本機音樂檔
+              </button>
+              <button id="btn-clear-music" class="btn btn-icon-danger" title="移除音樂" hidden>
+                ✕
+              </button>
+            </div>
+          </div>
+
+          <!-- 也可以直接貼音樂檔路徑 -->
+          <div id="manual-music-row" class="manual-path-row" style="margin-top: 10px;">
+            <input
+              type="text"
+              id="input-music-path"
+              class="path-input"
+              placeholder="或直接貼上本機音樂檔路徑，例如：D:\Music\bgm.mp3"
+            />
+            <button id="btn-add-music-path" class="btn btn-secondary">
+              ➕ 指定音樂
+            </button>
+          </div>
+
+          <!-- 音樂預聽與音量設定 -->
+          <div class="audio-controls-row">
+            <label for="setup-volume">預設音樂音量：</label>
+            <input type="range" id="setup-volume" min="0" max="1" step="0.05" value="0.8" />
+            <span id="setup-volume-label">80%</span>
+          </div>
+        </section>
+
+        <!-- 播放參數與進場動畫設定卡片 -->
+        <section class="card settings-section">
+          <div class="card-header">
+            <h2>✨ 3. 播放秒數與進場動畫設定</h2>
+          </div>
+
+          <!-- 每張秒數 -->
+          <div class="setting-row">
+            <div class="setting-label">
+              <strong>⏱️ 每張照片停留秒數</strong>
+              <span>控制每張照片播放多久後切換下一張</span>
+            </div>
+            <div class="duration-control">
+              <input type="range" id="duration-slider" min="2" max="30" step="1" value="5" />
+              <div class="duration-input-group">
+                <input type="number" id="duration-number" min="1" max="120" value="5" />
+                <span>秒 / 張</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 播放順序與循環 -->
+          <div class="setting-row">
+            <div class="setting-label">
+              <strong>🔀 照片讀取順序</strong>
+              <span>依目錄檔名順序或隨機從目錄抽取照片呈現</span>
+            </div>
+            <div class="segmented-control">
+              <label class="segment">
+                <input type="radio" name="play-order" value="sequential" checked />
+                <span>依序讀取</span>
+              </label>
+              <label class="segment">
+                <input type="radio" name="play-order" value="shuffle" />
+                <span>隨機抽取</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 畫面比例 -->
+          <div class="setting-row">
+            <div class="setting-label">
+              <strong>📺 電視畫面顯示模式</strong>
+              <span>直式或不同比例照片在 16:9 電視上的呈現方式</span>
+            </div>
+            <div class="segmented-control">
+              <label class="segment">
+                <input type="radio" name="fit-mode" value="contain" checked />
+                <span>完整照片 + 動態模糊背景</span>
+              </label>
+              <label class="segment">
+                <input type="radio" name="fit-mode" value="cover" />
+                <span>滿版填滿螢幕</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 顯示資訊開關 -->
+          <div class="setting-row checkboxes-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-loop-photos" checked />
+              <span>播完最後一張自動重頭循環</span>
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="chk-show-caption" checked />
+              <span>角落顯示目錄/照片名稱與動畫名稱</span>
+            </label>
+          </div>
+
+          <!-- 12種進場動畫預覽標籤 -->
+          <div class="animation-pool-box">
+            <div class="pool-header">
+              <span>🎭 <strong>每張不同進場動畫池 (12種不重複輪抽)</strong></span>
+              <span class="pool-hint">確保連續兩張絕不重複</span>
+            </div>
+            <div id="animation-tags" class="animation-tags"></div>
+          </div>
+        </section>
+
+        <!-- 底部超大啟動按鈕 -->
+        <div class="launch-bar">
+          <button id="btn-start-main" class="btn btn-primary btn-xl" disabled>
+            ▶ 立即從選定目錄讀取照片並開始播放
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= 2. 全螢幕動態劇院播放器 (Player View) ================= -->
+  <div id="player-view" class="player-container" hidden>
+    <!-- 動態高斯模糊背景層 -->
+    <div id="bg-layer-a" class="bg-blur-layer"></div>
+    <div id="bg-layer-b" class="bg-blur-layer"></div>
+    <div class="bg-vignette"></div>
+
+    <!-- 主舞台：3D 透視容器 -->
+    <div id="stage" class="stage-3d">
+      <div id="slide-prev" class="slide-wrapper">
+        <img id="img-prev" src="" alt="" />
+      </div>
+      <div id="slide-current" class="slide-wrapper">
+        <img id="img-current" src="" alt="" />
+      </div>
+    </div>
+
+    <!-- 左下角照片與動畫資訊浮水印 -->
+    <div id="photo-caption" class="photo-caption">
+      <div class="caption-folder" id="caption-folder">📁 目錄名稱</div>
+      <div class="caption-title" id="caption-filename">IMG_0001.JPG</div>
+      <div class="caption-meta">
+        <span id="caption-index">1 / 100</span>
+        <span class="dot">•</span>
+        <span id="caption-anim" class="caption-anim-badge">✨ 進場動畫</span>
+      </div>
+    </div>
+
+    <!-- 右上角 Chromecast 串流狀態指示器 -->
+    <div id="cast-active-indicator" class="cast-active-pill" hidden>
+      <span class="pulse-dot"></span> 📺 Chromecast 媒體串流投放中
+    </div>
+
+    <!-- 底部浮動控制列 -->
+    <div id="player-hud" class="player-hud">
+      <div class="hud-left">
+        <button id="btn-exit-player" class="hud-btn hud-btn-back" title="返回設定 (Esc)">
+          ⬅ 返回設定
+        </button>
+        <div class="hud-music-status" id="hud-music-box">
+          <span class="music-note-anim">🎵</span>
+          <span id="hud-music-name" class="hud-music-text">無背景音樂</span>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <button id="btn-prev-slide" class="hud-btn hud-btn-circle" title="上一張 (⬅)">
+          ⏮
+        </button>
+        <button id="btn-toggle-play" class="hud-btn hud-btn-play" title="暫停 / 繼續 (空白鍵)">
+          ⏸
+        </button>
+        <button id="btn-next-slide" class="hud-btn hud-btn-circle" title="下一張：換新進場動畫 (➡)">
+          ⏭
+        </button>
+      </div>
+
+      <div class="hud-right">
+        <div class="hud-speed-control" title="即時調整每張照片停留秒數">
+          <span>⏱️</span>
+          <button id="btn-sec-minus" class="hud-mini-btn">−</button>
+          <span id="hud-sec-value">5s</span>
+          <button id="btn-sec-plus" class="hud-mini-btn">+</button>
+        </div>
+
+        <div class="hud-volume-control">
+          <button id="btn-mute-toggle" class="hud-btn-icon" title="靜音切換 (M)">🔊</button>
+          <input type="range" id="hud-volume" min="0" max="1" step="0.05" value="0.8" />
+        </div>
+
+        <button id="btn-toggle-caption" class="hud-btn" title="顯示/隱藏左下角照片資訊 (I)">
+          🏷️ 資訊
+        </button>
+
+        <button id="btn-cast-tv" class="hud-btn hud-btn-cast" title="使用 Chromecast 投放到電視">
+          📺 投放電視 (Cast)
+        </button>
+
+        <button id="btn-fullscreen" class="hud-btn" title="全螢幕切換 (F)">
+          ⛶ 全螢幕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 3. Chromecast 電視投放中心 Modal ================= -->
+  <div id="cast-modal" class="modal-backdrop" hidden>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>📺 使用 Chromecast 投放照片與音樂到電視</h3>
+        <button id="btn-close-cast-modal" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="cast-option-card recommended">
+          <div class="cast-option-badge">最推薦 ‧ 畫質最佳 & 完整 3D 特效</div>
+          <h4>方式一：Google Chrome 原生「投放此分頁」 (1080p/4K 60fps)</h4>
+          <p>
+            這是最流暢且能 100% 呈現所有 <strong>3D 翻轉、拍立得落下、柔焦模糊背景與背景音樂</strong> 的方式：
+          </p>
+          <ol class="cast-steps">
+            <li>在網頁任意空白處按 <strong>滑鼠右鍵</strong> ➔ 點擊 <strong>「投放... (Cast...)」</strong>（或點擊 Chrome 右上角選單 <code>⋮</code> ➔「儲存並分享」➔「投放...」）。</li>
+            <li>在跳出的小視窗中，先確認下方「來源」為 <strong>「投放分頁 (Cast tab)」</strong>，然後點選您的 <strong>Chromecast / 智慧電視</strong>。</li>
+            <li>點擊下方按鈕進入<strong>電視劇院全螢幕模式</strong>，滑鼠靜止 2 秒後控制列會自動隱藏，電視上就會開始播放超漂亮的動態相簿與音樂！</li>
+          </ol>
+          <div class="cast-card-actions">
+            <button id="btn-cast-fullscreen-now" class="btn btn-primary">
+              ⛶ 切換為電視劇院全螢幕模式
+            </button>
+          </div>
+        </div>
+
+        <div class="cast-option-card">
+          <div class="cast-option-badge badge-alt">進階功能 ‧ Remote Playback</div>
+          <h4>方式二：直接啟動 Canvas 合成媒體流投放</h4>
+          <p>
+            將相簿畫面與背景音樂即時渲染合成為 HTML5 視訊流，直接呼叫瀏覽器內建的遠端媒體投放器：
+          </p>
+          <div class="cast-card-actions">
+            <button id="btn-start-canvas-cast" class="btn btn-secondary">
+              📡 呼叫 Chromecast 媒體裝置清單
+            </button>
+            <button id="btn-stop-canvas-cast" class="btn btn-outline" hidden>
+              ⏹ 停止媒體流合成
+            </button>
+          </div>
+          <p id="canvas-cast-status" class="cast-status-msg"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 隱藏的音訊播放器與 Canvas 串流合成器 -->
+  <audio id="bg-audio" loop preload="auto"></audio>
+  <canvas id="cast-canvas" width="1280" height="720" hidden></canvas>
+  <video id="cast-video" playsinline hidden></video>
+
+  <script src="app.js"></script>
+</body>
+</html>
