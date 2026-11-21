@@ -255,6 +255,13 @@
       <span class="pulse-dot"></span> 📺 Chromecast 媒體串流投放中
     </div>
 
+    <!-- 畫面中央鍵盤數字跳頁提示 (類似電視選台 HUD) -->
+    <div id="direct-jump-overlay" class="direct-jump-overlay" hidden>
+      <div class="direct-jump-title">跳至第幾張照片</div>
+      <div id="direct-jump-number" class="direct-jump-number">1</div>
+      <div class="direct-jump-sub">按 Enter 立即跳轉 ‧ 或等待 1.2 秒自動跳轉</div>
+    </div>
+
     <!-- 底部浮動控制列 -->
     <div id="player-hud" class="player-hud">
       <div class="hud-left">
@@ -277,6 +284,14 @@
         <button id="btn-next-slide" class="hud-btn hud-btn-circle" title="下一張：換新進場動畫 (➡)">
           ⏭
         </button>
+
+        <!-- 直接輸入頁碼跳頁 -->
+        <div class="hud-jump-control" title="輸入第幾張並按 Enter 或點擊跳頁 (亦可在播放時直接按鍵盤數字鍵)">
+          <span>第</span>
+          <input type="number" id="hud-jump-input" min="1" value="1" />
+          <span id="hud-total-pages">/ 1 張</span>
+          <button id="btn-hud-jump" class="hud-mini-jump-btn">跳頁</button>
+        </div>
       </div>
 
       <div class="hud-right">

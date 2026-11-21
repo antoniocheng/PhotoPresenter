@@ -89,6 +89,10 @@
     activeBgLayer: 'A',
     hudHideTimer: null,
 
+    // 鍵盤直接按數字選台跳頁緩衝
+    typedNumberBuffer: '',
+    typedNumberTimer: null,
+
     // Chromecast Canvas Stream
     isCanvasCasting: false,
     castAnimFrameId: null,
@@ -151,6 +155,11 @@
     btnPrevSlide: document.getElementById('btn-prev-slide'),
     btnTogglePlay: document.getElementById('btn-toggle-play'),
     btnNextSlide: document.getElementById('btn-next-slide'),
+    hudJumpInput: document.getElementById('hud-jump-input'),
+    hudTotalPages: document.getElementById('hud-total-pages'),
+    btnHudJump: document.getElementById('btn-hud-jump'),
+    directJumpOverlay: document.getElementById('direct-jump-overlay'),
+    directJumpNumber: document.getElementById('direct-jump-number'),
     btnSecMinus: document.getElementById('btn-sec-minus'),
     btnSecPlus: document.getElementById('btn-sec-plus'),
     hudSecValue: document.getElementById('hud-sec-value'),
@@ -773,11 +782,21 @@
     void dom.slideCurrent.offsetWidth;
     dom.slideCurrent.classList.add(anim.id);
 
-    // 6. 更新左下角資訊
+    // 6. 更新左下角資訊與底部控制列頁碼框
     dom.captionFolder.textContent = `📁 ${item.folderName}`;
     dom.captionFilename.textContent = item.name;
     dom.captionIndex.textContent = `${targetIndex + 1} / ${state.playlist.length}`;
     dom.captionAnim.textContent = anim.name;
+
+    if (dom.hudJumpInput) {
+      dom.hudJumpInput.max = state.playlist.length;
+      if (document.activeElement !== dom.hudJumpInput) {
+        dom.hudJumpInput.value = targetIndex + 1;
+      }
+    }
+    if (dom.hudTotalPages) {
+      dom.hudTotalPages.textContent = `/ ${state.playlist.length} 張`;
+    }
 
     // 7. 啟動倒數計時器
     restartSlideProgressAndTimer(state.durationSec * 1000);
@@ -849,11 +868,55 @@
   }
 
   // ================= 5. 播放器控制列與快捷鍵 =================
+  function jumpToPageNumber(pageNum) {
+    if (!state.isPlaying || state.playlist.length === 0) return;
+    let target = parseInt(pageNum, 10);
+    if (isNaN(target)) return;
+    target = Math.max(1, Math.min(state.playlist.length, target));
+    showSlide(target - 1);
+  }
+
+  function handleDirectDigitKeyPress(digit) {
+    clearTimeout(state.typedNumberTimer);
+    state.typedNumberBuffer += digit;
+
+    dom.directJumpNumber.textContent = `${state.typedNumberBuffer} / ${state.playlist.length}`;
+    dom.directJumpOverlay.hidden = false;
+
+    state.typedNumberTimer = setTimeout(() => {
+      commitDirectNumberJump();
+    }, 1100);
+  }
+
+  function commitDirectNumberJump() {
+    clearTimeout(state.typedNumberTimer);
+    if (!state.typedNumberBuffer) return;
+    const targetPage = parseInt(state.typedNumberBuffer, 10);
+    state.typedNumberBuffer = '';
+    dom.directJumpOverlay.hidden = true;
+    jumpToPageNumber(targetPage);
+  }
+
   function bindPlayerEvents() {
     dom.btnExitPlayer.addEventListener('click', stopPresentation);
     dom.btnTogglePlay.addEventListener('click', togglePlayPause);
     dom.btnPrevSlide.addEventListener('click', () => showSlide(state.currentIndex - 1));
     dom.btnNextSlide.addEventListener('click', () => showSlide(state.currentIndex + 1));
+
+    // 底部控制列：直接輸入頁碼跳頁
+    dom.btnHudJump.addEventListener('click', () => {
+      jumpToPageNumber(dom.hudJumpInput.value);
+      dom.hudJumpInput.blur();
+    });
+
+    dom.hudJumpInput.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        jumpToPageNumber(dom.hudJumpInput.value);
+        dom.hudJumpInput.blur();
+      }
+    });
 
     dom.btnSecMinus.addEventListener('click', () => {
       const nextSec = Math.max(1, state.durationSec - 1);
@@ -894,6 +957,33 @@
       }
 
       resetHudIdleTimer();
+
+      // 若正在播放中且焦點不在輸入框，直接按鍵盤數字 0~9 即可像電視選台一樣跳到該張照片！
+      if (/^[0-9]$/.test(e.key) && document.activeElement !== dom.hudJumpInput) {
+        e.preventDefault();
+        // 避免第一個字按 0
+        if (state.typedNumberBuffer === '' && e.key === '0') return;
+        handleDirectDigitKeyPress(e.key);
+        return;
+      }
+
+      if (e.key === 'Enter' && state.typedNumberBuffer !== '') {
+        e.preventDefault();
+        commitDirectNumberJump();
+        return;
+      }
+
+      if (e.key === 'Backspace' && state.typedNumberBuffer !== '') {
+        e.preventDefault();
+        state.typedNumberBuffer = state.typedNumberBuffer.slice(0, -1);
+        if (state.typedNumberBuffer === '') {
+          clearTimeout(state.typedNumberTimer);
+          dom.directJumpOverlay.hidden = true;
+        } else {
+          handleDirectDigitKeyPress('');
+        }
+        return;
+      }
 
       switch (e.key) {
         case ' ':
