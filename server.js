@@ -16,6 +16,7 @@ const url = require('url');
 
 const PORT = 3579;
 const ROOT_DIR = __dirname;
+const SETTINGS_FILE = path.join(ROOT_DIR, 'user_settings.json');
 
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.avif']);
 const AUDIO_EXTS = new Set(['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.webm']);
@@ -313,6 +314,35 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/file' && req.method === 'GET') {
     const filePath = parsedUrl.query.path;
     return streamLocalFile(req, res, filePath);
+  }
+
+  // 5.1 API: 讀取與儲存使用者上次選過的目錄、音樂與歷史紀錄 (持久化於 user_settings.json)
+  if (pathname === '/api/settings' && req.method === 'GET') {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      try {
+        const raw = fs.readFileSync(SETTINGS_FILE, 'utf8');
+        return sendJson(res, 200, JSON.parse(raw));
+      } catch (e) {
+        return sendJson(res, 200, {});
+      }
+    }
+    return sendJson(res, 200, {});
+  }
+
+  if (pathname === '/api/settings' && req.method === 'POST') {
+    const chunks = [];
+    req.on('data', chunk => { chunks.push(chunk); });
+    req.on('end', () => {
+      try {
+        const bodyStr = Buffer.concat(chunks).toString('utf8');
+        const parsed = JSON.parse(bodyStr || '{}');
+        fs.writeFileSync(SETTINGS_FILE, JSON.stringify(parsed, null, 2), 'utf8');
+        return sendJson(res, 200, { ok: true });
+      } catch (e) {
+        return sendJson(res, 400, { error: e.message });
+      }
+    });
+    return;
   }
 
   // 6. 靜態網頁檔案 (index.html, styles.css, app.js)

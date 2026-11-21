@@ -453,6 +453,97 @@ body {
   color: #fff;
 }
 
+/* 歷史選過的目錄與音樂快速重用區塊 */
+.recent-history-box {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.recent-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.btn-text-muted {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.btn-text-muted:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.recent-tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(14, 165, 233, 0.11);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  color: #e0f2fe;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  max-width: 100%;
+}
+
+.recent-chip:hover {
+  background: rgba(14, 165, 233, 0.24);
+  border-color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.recent-chip.music-chip {
+  background: rgba(16, 185, 129, 0.11);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #d1fae5;
+}
+
+.recent-chip.music-chip:hover {
+  background: rgba(16, 185, 129, 0.24);
+  border-color: #34d399;
+}
+
+.recent-chip-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.recent-chip-del {
+  opacity: 0.6;
+  font-size: 0.75rem;
+  padding: 0 3px;
+  border-radius: 4px;
+}
+
+.recent-chip-del:hover {
+  opacity: 1;
+  background: rgba(239, 68, 68, 0.35);
+  color: #fff;
+}
+
 /* 音樂設定區塊 */
 .music-box {
   display: flex;

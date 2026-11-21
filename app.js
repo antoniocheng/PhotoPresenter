@@ -37,6 +37,7 @@
 
   // 檢查是否運行於本機直讀伺服器 (server.js)
   const isLocalServerMode = window.location.protocol.startsWith('http');
+  const STORAGE_KEY = 'PhotoPresenter_SavedState_v1';
 
   const state = {
     /**
@@ -51,6 +52,12 @@
      */
     folders: new Map(),
     includeSubfolders: true,
+
+    // 歷史曾經選過的照片目錄與音樂清單 (方便隨時一鍵點選重用)
+    // Array<{ name: string, folderPath: string }>
+    recentFolders: [],
+    // Array<{ name: string, fullPath: string }>
+    recentMusic: [],
 
     // 背景音樂 (支援本機路徑直讀或 File 參照)
     // Array<{ name: string, type: 'server-path' | 'file', fullPath?: string, file?: File }>
@@ -114,6 +121,9 @@
     btnClearFolders: document.getElementById('btn-clear-folders'),
     folderList: document.getElementById('folder-list'),
     folderSummaryBadge: document.getElementById('folder-summary-badge'),
+    recentFoldersBox: document.getElementById('recent-folders-box'),
+    recentFoldersTags: document.getElementById('recent-folders-tags'),
+    btnClearRecentFolders: document.getElementById('btn-clear-recent-folders'),
 
     musicInput: document.getElementById('music-input'),
     musicDropZone: document.getElementById('music-drop-zone'),
@@ -125,6 +135,9 @@
     manualMusicRow: document.getElementById('manual-music-row'),
     inputMusicPath: document.getElementById('input-music-path'),
     btnAddMusicPath: document.getElementById('btn-add-music-path'),
+    recentMusicBox: document.getElementById('recent-music-box'),
+    recentMusicTags: document.getElementById('recent-music-tags'),
+    btnClearRecentMusic: document.getElementById('btn-clear-recent-music'),
     setupVolume: document.getElementById('setup-volume'),
     setupVolumeLabel: document.getElementById('setup-volume-label'),
     bgAudio: document.getElementById('bg-audio'),
@@ -181,7 +194,7 @@
     castVideo: document.getElementById('cast-video')
   };
 
-  function init() {
+  async function init() {
     renderAnimationPoolTags();
     bindSetupEvents();
     bindPlayerEvents();
@@ -192,6 +205,224 @@
     if (!isLocalServerMode) {
       dom.manualPathRow.hidden = true;
       dom.manualMusicRow.hidden = true;
+    }
+
+    // 載入上次儲存的照片目錄、背景音樂、歷史清單與播放設定
+    await loadPersistedSettings();
+  }
+
+  // ================= 持久化暫存與重用 (LocalStorage + Server JSON) =================
+  function savePersistedSettings() {
+    const activeFolders = [];
+    state.folders.forEach((f) => {
+      if (f.type === 'server-path' && f.folderPath) {
+        activeFolders.push({ name: f.name, folderPath: f.folderPath });
+      }
+    });
+
+    const activeMusic = state.musicTracks
+      .filter(t => t.type === 'server-path' && t.fullPath)
+      .map(t => ({ name: t.name, fullPath: t.fullPath }));
+
+    const payload = {
+      activeFolders,
+      activeMusic,
+      recentFolders: state.recentFolders.slice(0, 15),
+      recentMusic: state.recentMusic.slice(0, 15),
+      includeSubfolders: state.includeSubfolders,
+      durationSec: state.durationSec,
+      playOrder: state.playOrder,
+      fitMode: state.fitMode,
+      loopPhotos: state.loopPhotos,
+      showCaption: state.showCaption,
+      volume: state.volume
+    };
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (e) {}
+
+    if (isLocalServerMode) {
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
+  }
+
+  async function loadPersistedSettings() {
+    let data = null;
+
+    if (isLocalServerMode) {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const json = await res.json();
+          if (json && (json.activeFolders || json.recentFolders || json.activeMusic)) {
+            data = json;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (!data) {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) data = JSON.parse(raw);
+      } catch (e) {}
+    }
+
+    if (!data) return;
+
+    // 還原歷史紀錄
+    if (Array.isArray(data.recentFolders)) {
+      state.recentFolders = data.recentFolders;
+    }
+    if (Array.isArray(data.recentMusic)) {
+      state.recentMusic = data.recentMusic;
+    }
+
+    // 還原播放參數
+    if (typeof data.includeSubfolders === 'boolean') {
+      state.includeSubfolders = data.includeSubfolders;
+      dom.chkSubfolders.checked = data.includeSubfolders;
+    }
+    if (typeof data.durationSec === 'number') {
+      updateDurationUI(data.durationSec);
+    }
+    if (data.playOrder) {
+      state.playOrder = data.playOrder;
+      const radio = document.querySelector(`input[name="play-order"][value="${data.playOrder}"]`);
+      if (radio) radio.checked = true;
+    }
+    if (data.fitMode) {
+      state.fitMode = data.fitMode;
+      const radio = document.querySelector(`input[name="fit-mode"][value="${data.fitMode}"]`);
+      if (radio) radio.checked = true;
+    }
+    if (typeof data.loopPhotos === 'boolean') {
+      state.loopPhotos = data.loopPhotos;
+      dom.chkLoopPhotos.checked = data.loopPhotos;
+    }
+    if (typeof data.showCaption === 'boolean') {
+      state.showCaption = data.showCaption;
+      dom.chkShowCaption.checked = data.showCaption;
+    }
+    if (typeof data.volume === 'number') {
+      setVolume(data.volume);
+    }
+
+    // 還原上次選定的照片目錄列表
+    if (Array.isArray(data.activeFolders)) {
+      for (const f of data.activeFolders) {
+        if (f && f.folderPath) {
+          addServerFolderPath(f.folderPath, f.name, false);
+        }
+      }
+    }
+
+    // 還原上次選定的背景音樂
+    if (Array.isArray(data.activeMusic) && data.activeMusic.length > 0) {
+      const tracks = data.activeMusic.map(m => ({
+        name: m.name,
+        type: 'server-path',
+        fullPath: m.fullPath
+      }));
+      setMusicTracks(tracks, false);
+    }
+
+    renderFolderList();
+    renderRecentHistoryUI();
+  }
+
+  function addRecentFolderRecord(folderPath, name) {
+    const clean = folderPath.trim();
+    state.recentFolders = state.recentFolders.filter(
+      x => x.folderPath.toLowerCase() !== clean.toLowerCase()
+    );
+    state.recentFolders.unshift({ name, folderPath: clean });
+    if (state.recentFolders.length > 15) state.recentFolders.length = 15;
+    renderRecentHistoryUI();
+  }
+
+  function addRecentMusicRecord(fullPath, name) {
+    const clean = fullPath.trim();
+    state.recentMusic = state.recentMusic.filter(
+      x => x.fullPath.toLowerCase() !== clean.toLowerCase()
+    );
+    state.recentMusic.unshift({ name, fullPath: clean });
+    if (state.recentMusic.length > 15) state.recentMusic.length = 15;
+    renderRecentHistoryUI();
+  }
+
+  function renderRecentHistoryUI() {
+    // 1. 渲染歷史選過的照片目錄標籤
+    if (state.recentFolders.length === 0) {
+      dom.recentFoldersBox.hidden = true;
+    } else {
+      dom.recentFoldersBox.hidden = false;
+      dom.recentFoldersTags.innerHTML = state.recentFolders
+        .map((item, idx) => `
+          <div class="recent-chip" data-idx="${idx}" title="點擊加入此目錄：${escapeHtml(item.folderPath)}">
+            <span>📁</span>
+            <span class="recent-chip-text">${escapeHtml(item.name)}</span>
+            <span class="recent-chip-del" data-del-folder="${idx}" title="從歷史紀錄移除">✕</span>
+          </div>
+        `)
+        .join('');
+
+      dom.recentFoldersTags.querySelectorAll('.recent-chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+          const delIdx = e.target.getAttribute('data-del-folder');
+          if (delIdx !== null) {
+            e.stopPropagation();
+            state.recentFolders.splice(parseInt(delIdx, 10), 1);
+            renderRecentHistoryUI();
+            savePersistedSettings();
+            return;
+          }
+          const idx = parseInt(chip.getAttribute('data-idx'), 10);
+          const item = state.recentFolders[idx];
+          if (item) {
+            addServerFolderPath(item.folderPath, item.name, true);
+          }
+        });
+      });
+    }
+
+    // 2. 渲染歷史選過的背景音樂標籤
+    if (state.recentMusic.length === 0) {
+      dom.recentMusicBox.hidden = true;
+    } else {
+      dom.recentMusicBox.hidden = false;
+      dom.recentMusicTags.innerHTML = state.recentMusic
+        .map((item, idx) => `
+          <div class="recent-chip music-chip" data-idx="${idx}" title="點擊套用此音樂：${escapeHtml(item.fullPath)}">
+            <span>🎵</span>
+            <span class="recent-chip-text">${escapeHtml(item.name)}</span>
+            <span class="recent-chip-del" data-del-music="${idx}" title="從歷史紀錄移除">✕</span>
+          </div>
+        `)
+        .join('');
+
+      dom.recentMusicTags.querySelectorAll('.recent-chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+          const delIdx = e.target.getAttribute('data-del-music');
+          if (delIdx !== null) {
+            e.stopPropagation();
+            state.recentMusic.splice(parseInt(delIdx, 10), 1);
+            renderRecentHistoryUI();
+            savePersistedSettings();
+            return;
+          }
+          const idx = parseInt(chip.getAttribute('data-idx'), 10);
+          const item = state.recentMusic[idx];
+          if (item) {
+            setMusicTracks([{ name: item.name, type: 'server-path', fullPath: item.fullPath }], true);
+          }
+        });
+      });
     }
   }
 
@@ -252,12 +483,28 @@
     dom.chkSubfolders.addEventListener('change', (e) => {
       state.includeSubfolders = e.target.checked;
       renderFolderList();
+      savePersistedSettings();
     });
 
     // 清空目錄列表
     dom.btnClearFolders.addEventListener('click', () => {
       state.folders.clear();
       renderFolderList();
+      savePersistedSettings();
+    });
+
+    // 清除歷史照片目錄紀錄
+    dom.btnClearRecentFolders.addEventListener('click', () => {
+      state.recentFolders = [];
+      renderRecentHistoryUI();
+      savePersistedSettings();
+    });
+
+    // 清除歷史音樂紀錄
+    dom.btnClearRecentMusic.addEventListener('click', () => {
+      state.recentMusic = [];
+      renderRecentHistoryUI();
+      savePersistedSettings();
     });
 
     // 選擇本機背景音樂
@@ -312,11 +559,13 @@
     // 音量滑桿
     dom.setupVolume.addEventListener('input', (e) => {
       setVolume(parseFloat(e.target.value));
+      savePersistedSettings();
     });
 
     // 秒數設定
     dom.durationSlider.addEventListener('input', (e) => {
       updateDurationUI(parseInt(e.target.value, 10));
+      savePersistedSettings();
     });
 
     dom.durationNumber.addEventListener('change', (e) => {
@@ -324,11 +573,13 @@
       if (isNaN(val) || val < 1) val = 1;
       if (val > 120) val = 120;
       updateDurationUI(val);
+      savePersistedSettings();
     });
 
     document.querySelectorAll('input[name="play-order"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         state.playOrder = e.target.value;
+        savePersistedSettings();
       });
     });
 
@@ -336,16 +587,19 @@
       radio.addEventListener('change', (e) => {
         state.fitMode = e.target.value;
         dom.playerView.classList.toggle('fit-cover', state.fitMode === 'cover');
+        savePersistedSettings();
       });
     });
 
     dom.chkLoopPhotos.addEventListener('change', (e) => {
       state.loopPhotos = e.target.checked;
+      savePersistedSettings();
     });
 
     dom.chkShowCaption.addEventListener('change', (e) => {
       state.showCaption = e.target.checked;
       dom.photoCaption.hidden = !state.showCaption;
+      savePersistedSettings();
     });
 
     // 開始播放
@@ -353,16 +607,22 @@
     dom.btnStartMain.addEventListener('click', startPresentation);
   }
 
-  // 加入本機目錄路徑 (只記錄目錄路徑字串，完全不上傳檔案)
-  function addServerFolderPath(folderPath, folderName) {
+  // 加入本機目錄路徑 (只記錄目錄路徑字串，完全不上傳檔案，並自動記憶至暫存與歷史清單)
+  function addServerFolderPath(folderPath, folderName, shouldPersist = true) {
     const cleanPath = folderPath.trim();
+    const parts = cleanPath.split(/[\\/]/).filter(Boolean);
+    const name = folderName || parts[parts.length - 1] || cleanPath;
+
+    // 記錄至歷史曾選過的目錄清單
+    addRecentFolderRecord(cleanPath, name);
+
     for (const existing of state.folders.values()) {
       if (existing.type === 'server-path' && existing.folderPath.toLowerCase() === cleanPath.toLowerCase()) {
+        if (shouldPersist) savePersistedSettings();
         return; // 已在清單中
       }
     }
-    const parts = cleanPath.split(/[\\/]/).filter(Boolean);
-    const name = folderName || parts[parts.length - 1] || cleanPath;
+
     const id = `dir_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
     state.folders.set(id, {
@@ -372,6 +632,9 @@
       folderPath: cleanPath
     });
     renderFolderList();
+    if (shouldPersist) {
+      savePersistedSettings();
+    }
   }
 
   // 使用 Chrome File System Access API 取得 DirectoryHandle（同樣不會跳出「上傳檔案」，只記目錄控柄）
@@ -438,6 +701,7 @@
         const id = btn.getAttribute('data-id');
         state.folders.delete(id);
         renderFolderList();
+        savePersistedSettings();
       });
     });
 
@@ -449,9 +713,16 @@
   }
 
   // ================= 2. 背景音樂直讀與無限循環播放 =================
-  function setMusicTracks(tracks) {
+  function setMusicTracks(tracks, shouldPersist = true) {
     state.musicTracks = tracks;
     state.currentMusicIndex = 0;
+
+    // 記錄至歷史曾選過的音樂清單
+    for (const t of tracks) {
+      if (t.type === 'server-path' && t.fullPath) {
+        addRecentMusicRecord(t.fullPath, t.name);
+      }
+    }
 
     const first = tracks[0];
     const extra = tracks.length > 1 ? ` 等 ${tracks.length} 首循環` : ' (無限重覆播放 Loop)';
@@ -465,6 +736,10 @@
 
     dom.musicStatusBadge.textContent = `🎵 已設定音樂 (${tracks.length} 首)`;
     dom.musicStatusBadge.className = 'pill-badge badge-success';
+
+    if (shouldPersist) {
+      savePersistedSettings();
+    }
   }
 
   function startMusicPlayback() {
@@ -520,6 +795,7 @@
     dom.musicStatusBadge.textContent = '未選擇音樂';
     dom.musicStatusBadge.className = 'pill-badge badge-muted';
     dom.hudMusicName.textContent = '無背景音樂';
+    savePersistedSettings();
   }
 
   function setVolume(val) {

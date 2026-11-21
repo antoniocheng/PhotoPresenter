@@ -72,10 +72,19 @@
 
         <!-- 已選目錄清單 -->
         <div class="folder-list-container">
-          <div class="folder-list-header">已選定的照片目錄列表（播放時直接從此列表讀取照片）</div>
+          <div class="folder-list-header">已選定的照片目錄列表（會自動記憶，下次打開直接重用）</div>
           <ul id="folder-list" class="folder-list">
             <li class="empty-state">尚未加入任何照片目錄，請點擊上方「📂 瀏覽並加入本機照片目錄」或貼上資料夾路徑</li>
           </ul>
+        </div>
+
+        <!-- 歷史選過的照片目錄（一鍵點擊重用） -->
+        <div id="recent-folders-box" class="recent-history-box" hidden>
+          <div class="recent-history-header">
+            <span>🕒 曾經選過的照片目錄（點擊即可直接加回列表）</span>
+            <button id="btn-clear-recent-folders" class="btn-text-muted" title="清除歷史紀錄">清除紀錄</button>
+          </div>
+          <div id="recent-folders-tags" class="recent-tags-list"></div>
         </div>
       </section>
 
@@ -123,6 +132,15 @@
             <button id="btn-add-music-path" class="btn btn-secondary">
               ➕ 指定音樂
             </button>
+          </div>
+
+          <!-- 歷史選過的背景音樂（一鍵點擊重用） -->
+          <div id="recent-music-box" class="recent-history-box" hidden>
+            <div class="recent-history-header">
+              <span>🕒 曾經選過的背景音樂（點擊即可快速套用）</span>
+              <button id="btn-clear-recent-music" class="btn-text-muted" title="清除音樂歷史紀錄">清除紀錄</button>
+            </div>
+            <div id="recent-music-tags" class="recent-tags-list"></div>
           </div>
 
           <!-- 音樂預聽與音量設定 -->
