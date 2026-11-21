@@ -1030,7 +1030,17 @@
     state.currentIndex = targetIndex;
     const item = state.playlist[targetIndex];
 
-    // 1. 讓上一張照片執行平滑退場
+    // 1. 先從本機目錄讀取並預先解碼這張新照片，確保過場動畫的每一毫秒都完整呈現，不會被讀檔吃掉！
+    const resolved = await resolvePhotoDisplayUrl(item);
+    await preloadAndDecodeImage(resolved.url);
+
+    // 若在讀檔等待期間使用者已停止播放或跳到別張，則中止此次切換
+    if (!state.isPlaying || state.currentIndex !== targetIndex) {
+      if (resolved.isBlob) URL.revokeObjectURL(resolved.url);
+      return;
+    }
+
+    // 2. 照片已完全載入就緒！現在同時啟動「舊照片退場」與「新照片進場」過場動畫
     if (dom.imgCurrent.getAttribute('src')) {
       if (state.prevPhotoBlobUrl) {
         URL.revokeObjectURL(state.prevPhotoBlobUrl);
@@ -1042,8 +1052,6 @@
       dom.slidePrev.classList.add('slide-exit');
     }
 
-    // 2. 直接從本機目錄讀取當前這張照片出來呈現
-    const resolved = await resolvePhotoDisplayUrl(item);
     state.currentPhotoBlobUrl = resolved.isBlob ? resolved.url : null;
 
     // 3. 抽取與上一張不同的進場動畫
@@ -1074,8 +1082,26 @@
       dom.hudTotalPages.textContent = `/ ${state.playlist.length} 張`;
     }
 
-    // 7. 啟動倒數計時器
+    // 7. 啟動倒數計時器（從過場動畫正式開始時才起算停留秒數）
     restartSlideProgressAndTimer(state.durationSec * 1000);
+  }
+
+  /**
+   * 預先載入並解碼圖片，確保圖片從 NAS 或硬碟讀取完成後才觸發 CSS 過場動畫
+   */
+  function preloadAndDecodeImage(srcUrl) {
+    return new Promise((resolve) => {
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        if (typeof tempImg.decode === 'function') {
+          tempImg.decode().then(resolve).catch(resolve);
+        } else {
+          resolve();
+        }
+      };
+      tempImg.onerror = () => resolve();
+      tempImg.src = srcUrl;
+    });
   }
 
   function updateBlurredBackground(imageUrl) {

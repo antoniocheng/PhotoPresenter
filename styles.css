@@ -834,10 +834,10 @@ body {
   border-radius: 0;
 }
 
-/* 舊照片平滑退場動畫 (放慢至 2.4 秒優雅柔化淡出) */
+/* 舊照片平滑退場動畫 (完整 1.5 秒均勻柔和淡出，確保與新照片有超過 1 秒的重疊過場) */
 .slide-wrapper.slide-exit {
   z-index: 4;
-  animation: animExitFade 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: animExitFade 1.5s ease-in-out forwards;
 }
 
 @keyframes animExitFade {
@@ -848,24 +848,25 @@ body {
   }
   100% {
     opacity: 0;
-    transform: scale(0.96);
-    filter: blur(8px);
+    transform: scale(0.95);
+    filter: blur(6px);
   }
 }
 
 /* ==========================================================================
-   12 種各具特色的動態進場與展示動畫 (放慢轉場節奏，優雅舒緩不急促)
+   12 種各具特色的動態進場與展示動畫
+   採用溫和均勻的 ease-in-out 曲線，讓照片與照片之間的過場轉換紮實呈現約 1.4 ~ 1.6 秒
    ========================================================================== */
 
 /* 1. 電影慢速推進 (Ken Burns Zoom In & Pan) */
 .anim-kenburns-in {
   z-index: 5;
   animation:
-    fadeEnter 2.4s ease-in-out forwards,
+    fadeEnter 1.4s ease-in-out forwards,
     kenBurnsIn var(--slide-duration, 5s) ease-out forwards;
 }
 @keyframes kenBurnsIn {
-  0%   { transform: scale(0.93) translate3d(0, 0, 0); }
+  0%   { transform: scale(0.92) translate3d(0, 0, 0); }
   100% { transform: scale(1.07) translate3d(-1%, -0.8%, 0); }
 }
 
@@ -873,93 +874,93 @@ body {
 .anim-kenburns-out {
   z-index: 5;
   animation:
-    fadeEnter 2.4s ease-in-out forwards,
+    fadeEnter 1.4s ease-in-out forwards,
     kenBurnsOut var(--slide-duration, 5s) ease-out forwards;
 }
 @keyframes kenBurnsOut {
-  0%   { transform: scale(1.13) translate3d(1.2%, 0.8%, 0); }
+  0%   { transform: scale(1.14) translate3d(1.2%, 0.8%, 0); }
   100% { transform: scale(1.0) translate3d(0, 0, 0); }
 }
 
 /* 3. 左側舒緩滑入 (Slide In Left Gentle) */
 .anim-slide-left {
   z-index: 5;
-  animation: slideFromLeft 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideFromLeft 1.5s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes slideFromLeft {
-  0%   { opacity: 0; transform: translate3d(-45vw, 0, 0) scale(0.94); }
+  0%   { opacity: 0; transform: translate3d(-55vw, 0, 0) scale(0.93); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 /* 4. 右側舒緩滑入 (Slide In Right Gentle) */
 .anim-slide-right {
   z-index: 5;
-  animation: slideFromRight 2.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideFromRight 1.5s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes slideFromRight {
-  0%   { opacity: 0; transform: translate3d(45vw, 0, 0) scale(0.94); }
+  0%   { opacity: 0; transform: translate3d(55vw, 0, 0) scale(0.93); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
 /* 5. 3D 卡片水平優雅翻轉進場 (3D Flip Horizontal) */
 .anim-3d-flip-x {
   z-index: 5;
-  animation: flip3DHorizontal 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: flip3DHorizontal 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes flip3DHorizontal {
-  0%   { opacity: 0; transform: rotateY(-65deg) scale(0.86) translateZ(-90px); }
+  0%   { opacity: 0; transform: rotateY(-75deg) scale(0.85) translateZ(-100px); }
   100% { opacity: 1; transform: rotateY(0deg) scale(1) translateZ(0); }
 }
 
 /* 6. 3D 卡片垂直立體優雅翻轉 (3D Flip Vertical) */
 .anim-3d-flip-y {
   z-index: 5;
-  animation: flip3DVertical 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: flip3DVertical 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes flip3DVertical {
-  0%   { opacity: 0; transform: rotateX(60deg) scale(0.86) translateZ(-90px); }
+  0%   { opacity: 0; transform: rotateX(70deg) scale(0.85) translateZ(-100px); }
   100% { opacity: 1; transform: rotateX(0deg) scale(1) translateZ(0); }
 }
 
 /* 7. 拍立得微旋輕柔落下 (Polaroid Gentle Drop & Settle) */
 .anim-polaroid-drop {
   z-index: 5;
-  animation: polaroidDrop 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: polaroidDrop 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes polaroidDrop {
-  0%   { opacity: 0; transform: translate3d(0, -38vh, 140px) rotateZ(-9deg) scale(1.14); }
+  0%   { opacity: 0; transform: translate3d(0, -45vh, 140px) rotateZ(-10deg) scale(1.14); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) rotateZ(0deg) scale(1); }
 }
 
 /* 8. 底部緩慢浮現放大 (Float Up & Scale) */
 .anim-float-up {
   z-index: 5;
-  animation: floatUpReveal 2.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: floatUpReveal 1.5s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes floatUpReveal {
-  0%   { opacity: 0; transform: translate3d(0, 35vh, 0) scale(0.85); filter: blur(8px); }
+  0%   { opacity: 0; transform: translate3d(0, 42vh, 0) scale(0.85); filter: blur(8px); }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0px); }
 }
 
 /* 9. 漩渦柔和旋轉聚焦進場 (Swirl & Zoom Focus) */
 .anim-swirl-zoom {
   z-index: 5;
-  animation: swirlZoomIn 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: swirlZoomIn 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes swirlZoomIn {
-  0%   { opacity: 0; transform: scale(0.65) rotateZ(11deg); filter: blur(8px); }
+  0%   { opacity: 0; transform: scale(0.6) rotateZ(14deg); filter: blur(8px); }
   100% { opacity: 1; transform: scale(1) rotateZ(0deg); filter: blur(0px); }
 }
 
 /* 10. 柔焦光圈圓形緩慢展開 (Iris Circle Reveal) */
 .anim-iris-reveal {
   z-index: 5;
-  animation: irisCircleReveal 3.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: irisCircleReveal 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes irisCircleReveal {
   0% {
     opacity: 0;
-    clip-path: circle(8% at 50% 50%);
+    clip-path: circle(5% at 50% 50%);
     transform: scale(1.08);
     filter: blur(8px);
   }
@@ -974,12 +975,12 @@ body {
 /* 11. 菱形百葉緩慢展開 (Diamond Wipe Reveal) */
 .anim-diamond-wipe {
   z-index: 5;
-  animation: diamondReveal 3.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: diamondReveal 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes diamondReveal {
   0% {
     opacity: 0;
-    clip-path: polygon(50% 35%, 65% 50%, 50% 65%, 35% 50%);
+    clip-path: polygon(50% 42%, 58% 50%, 50% 58%, 42% 50%);
     transform: scale(1.08);
   }
   100% {
@@ -993,10 +994,10 @@ body {
 .anim-3d-swing {
   z-index: 5;
   transform-origin: left center;
-  animation: swing3DDoor 3.0s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: swing3DDoor 1.6s cubic-bezier(0.35, 0, 0.25, 1) forwards;
 }
 @keyframes swing3DDoor {
-  0%   { opacity: 0; transform: perspective(1400px) rotateY(45deg) translateX(-10vw) scale(0.92); }
+  0%   { opacity: 0; transform: perspective(1400px) rotateY(55deg) translateX(-12vw) scale(0.92); }
   100% { opacity: 1; transform: perspective(1400px) rotateY(0deg) translateX(0) scale(1); }
 }
 
